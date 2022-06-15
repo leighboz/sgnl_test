@@ -18,21 +18,36 @@ class CardAccessController extends Controller
     public function index(Request $request) {
         $parameters = $request->query();
         
-        // only expect one parameter
-        if (count($parameters)>1) {
+        // expect exactly one parameter
+        if (count($parameters)!=1) {
             return Response::json([
-                'error' => 'too many parameters'    // bad request
+                'error' => 'incorrect number of parameters'    // bad request
             ],400);
         }
 
         // parameter should be called 'cn'
         if (!array_key_exists('cn', $parameters)) {
             return Response::json([
-                'error' => 'invalid parameter'  // bad request
+                'error' => 'invalid parameter name'  // bad request
             ],400);
         }
 
-        $cn = $parameters['cn'];
+        $cn = strval($parameters['cn']);    // get cn value as string
+
+        // from api spec, if cn value = 'not_found', empty fields should be returned
+        if ($cn=='not_found') {
+            return Response::json([
+                'full_name' => '',
+                'department' => []
+            ]);
+        }
+
+        // cn value should be exactly 32 characters long
+        if (strlen($cn)!=32) {
+            return Response::json([
+                'error' => 'card number must be 32 characters'  // bad request
+            ],400);
+        }
 
         $matching_card = AccessCard::where('rfid', $cn)->first();
 

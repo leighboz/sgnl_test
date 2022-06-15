@@ -20,14 +20,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        //create departments
+        // create departments
         DB::table('departments')->insert([
-            ['name' => 'Development', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Accounting', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Development', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Director', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Headquarters', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'HR', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Sales', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'Headquarters', 'created_at' => now(), 'updated_at' => now()]
+            ['name' => 'Sales', 'created_at' => now(), 'updated_at' => now()]            
         ]);
+
+        // create buildings
         DB::table('buildings')->insert([
             ['name' => 'Isaac Newton', 'country' => 'UK', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Oscar Wilde', 'country' => 'UK', 'created_at' => now(), 'updated_at' => now()],
@@ -36,6 +39,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Luciano Pavarotti', 'country' => 'Italy', 'created_at' => now(), 'updated_at' => now()]
         ]);
 
+        // set building-department relationships
         $building = Building::where('name','Isaac Newton')->first()->departments()->attach(Department::where('name','Development')->first()->id);
         $building = Building::where('name','Isaac Newton')->first()->departments()->attach(Department::where('name','Accounting')->first()->id);
         $building = Building::where('name','Oscar Wilde')->first()->departments()->attach(Department::where('name','HR')->first()->id);
@@ -46,17 +50,24 @@ class DatabaseSeeder extends Seeder
         $building = Building::where('name','Luciano Pavarotti')->first()->departments()->attach(Department::where('name','Development')->first()->id);
         $building = Building::where('name','Luciano Pavarotti')->first()->departments()->attach(Department::where('name','Sales')->first()->id);
 
-        // Building::factory()->count(5)->create()->each(
-        //     function ($building) {
-        //         $departments = Department::inRandomOrder()->take(2)->get();
-        //         $building->departments()->attach($departments[0]->id);
-        //         $building->departments()->attach($departments[1]->id);
-        //     }
-        // );
+        // create test data
+        $test_employee = new Employee;
+        $test_employee->given_names = 'Julius';
+        $test_employee->family_name = 'Caesar';
+        $test_employee->date_of_birth = '0100-07-12';
+        $test_employee->gender = 'male';
+        $test_employee->save();
+        $test_access_card = new AccessCard;
+        $test_access_card->rfid = '142594708f3a5a3ac2980914a0fc954f';
+        $test_employee->accessCard()->save($test_access_card);
+        $test_employee->departments()->attach(Department::where('name','Director')->first()->id);
+        $test_employee->departments()->attach(Department::where('name','Development')->first()->id);
+
+        // create 50 employees and access cards then set (employee-access card) and (employee-department) relationships
         Employee::factory()->count(50)->create()->each(
             function ($employee) {
-                $accessCard = AccessCard::factory()->make();
-                $employee->accessCard()->save($accessCard);
+                $access_card = AccessCard::factory()->make();
+                $employee->accessCard()->save($access_card);
 
                 //get 2 random departments and attach to department-employee relationship
                 $departments = Department::inRandomOrder()->take(2)->get();
@@ -64,6 +75,5 @@ class DatabaseSeeder extends Seeder
                 $employee->departments()->attach($departments[1]->id);
             }
         );
-
     }
 }
